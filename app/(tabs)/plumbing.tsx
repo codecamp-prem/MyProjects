@@ -1,62 +1,112 @@
-import Slider from "@react-native-community/slider";
-import * as React from "react";
+import Progress from "@/components/progress";
+import { PlumbingProjects as initialProjects } from "@/data/plumbing_projects";
+import { styled } from "nativewind";
+import React, { memo, useState } from "react";
+import { ScrollView, TextInput, View } from "react-native";
 import { List, Text } from "react-native-paper";
 
-const Plumbing = () => {
-  const [expanded, setExpanded] = React.useState(true);
-  const [workProgress, setWorkProgress] = React.useState(0);
+const StyledView = styled(View);
 
-  const handlePress = () => setExpanded(!expanded);
+interface Task {
+  name: string;
+  progress: string;
+}
+
+interface Project {
+  id: number;
+  completed: boolean;
+  title: string;
+  tasks: Task[];
+}
+
+interface AccordionItemProps {
+  project: Project;
+  handleTaskChange: (
+    projectId: number,
+    taskIndex: number,
+    newProgress: string
+  ) => void;
+}
+
+const AccordionItem: React.FC<AccordionItemProps> = memo(
+  ({ project, handleTaskChange }) => {
+    const totalProgress =
+      project.tasks.reduce((acc, task) => {
+        return acc + parseInt(task.progress, 10);
+      }, 0) / project.tasks.length;
+
+    return (
+      <List.Accordion
+        title={project.title}
+        description={`${totalProgress.toFixed(2)}% complete`}
+        left={(props) => <List.Icon {...props} icon="folder" />}
+      >
+        <Progress progress={totalProgress} />
+        {project.tasks.map((task, taskIndex) => (
+          <StyledView
+            key={taskIndex}
+            className="flex flex-row bg-slate-200 items-center p-4 justify-between"
+          >
+            <List.Item title={task.name} />
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 4,
+                padding: 10,
+                fontSize: 16,
+                letterSpacing: 1,
+                width: "30%",
+              }}
+              value={task.progress}
+              onChangeText={(text) =>
+                handleTaskChange(project.id, taskIndex, text)
+              }
+              keyboardType="numeric"
+            />
+            <Text variant="titleMedium">{task.progress} %</Text>
+          </StyledView>
+        ))}
+      </List.Accordion>
+    );
+  }
+);
+
+const Plumbing: React.FC = memo(() => {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+
+  const handleTaskChange = (
+    projectId: number,
+    taskIndex: number,
+    newProgress: string
+  ) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              tasks: project.tasks.map((task, index) =>
+                index === taskIndex ? { ...task, progress: newProgress } : task
+              ),
+            }
+          : project
+      )
+    );
+  };
 
   return (
     <List.Section title="Plumbing Projects">
-      <List.Accordion
-        title="Korean Didi ko Ghar"
-        description="95% complete"
-        left={(props) => <List.Icon {...props} icon="folder" />}
-      >
-        <List.Item title="Drainage" />
-        <List.Item title="Pipe Fitting" />
-        <Slider
-          style={{ width: 300, height: 40 }}
-          minimumValue={0}
-          maximumValue={100}
-          minimumTrackTintColor="#FFFFFF"
-          maximumTrackTintColor="#000000"
-          step={10}
-          onValueChange={setWorkProgress}
-        />
-        <Text variant="titleMedium">{workProgress} %</Text>
-        <List.Item title="Bathroom Fitting" />
-        <List.Item title="Tank Fitting" />
-        <List.Item title="Apparatus Fitting" />
-      </List.Accordion>
-
-      <List.Accordion
-        title="Mata Tirtha Ko Ghar"
-        description="90% complete"
-        left={(props) => <List.Icon {...props} icon="folder" />}
-        expanded={expanded}
-        onPress={handlePress}
-      >
-        <List.Item title="Drainage" />
-        <List.Item title="Pipe Fitting" />
-        <Slider
-          style={{ width: 300, height: 40 }}
-          minimumValue={0}
-          maximumValue={100}
-          minimumTrackTintColor="#FFFFFF"
-          maximumTrackTintColor="#000000"
-          step={10}
-          onValueChange={setWorkProgress}
-        />
-        <Text variant="titleMedium">{workProgress} %</Text>
-        <List.Item title="Bathroom Fitting" />
-        <List.Item title="Tank Fitting" />
-        <List.Item title="Apparatus Fitting" />
-      </List.Accordion>
+      <ScrollView>
+        {projects.map((project) => (
+          <AccordionItem
+            key={project.id}
+            project={project}
+            handleTaskChange={handleTaskChange}
+          />
+        ))}
+      </ScrollView>
     </List.Section>
   );
-};
+});
 
 export default Plumbing;
