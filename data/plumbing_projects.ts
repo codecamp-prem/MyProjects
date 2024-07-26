@@ -10,6 +10,7 @@ export const PlumbingProjects = [
       { name: "Tank Fitting", progress: "60" },
       { name: "Apparatus Fitting", progress: "60" },
     ],
+    images: [],
   },
   {
     id: 2,
@@ -22,5 +23,6 @@ export const PlumbingProjects = [
       { name: "Tank Fitting", progress: "60" },
       { name: "Apparatus Fitting", progress: "60" },
     ],
+    images: [],
   },
 ];

@@ -1,8 +1,9 @@
-import Progress from "@/components/progress";
+import ProjectImages from "@/components/ProjectImages";
+import ProjectProgress from "@/components/ProjectProgress";
 import { PlumbingProjects as initialProjects } from "@/data/plumbing_projects";
 import { styled } from "nativewind";
 import React, { memo, useState } from "react";
-import { ScrollView, TextInput, View } from "react-native";
+import { FlatList, TextInput, View } from "react-native";
 import { List, Text } from "react-native-paper";
 
 const StyledView = styled(View);
@@ -11,12 +12,16 @@ interface Task {
   name: string;
   progress: string;
 }
-
+interface Image {
+  id: string;
+  uri: string;
+}
 interface Project {
   id: number;
   completed: boolean;
   title: string;
   tasks: Task[];
+  images: Image[];
 }
 
 interface AccordionItemProps {
@@ -41,7 +46,7 @@ const AccordionItem: React.FC<AccordionItemProps> = memo(
         description={`${totalProgress.toFixed(2)}% complete`}
         left={(props) => <List.Icon {...props} icon="folder" />}
       >
-        <Progress progress={totalProgress} />
+        <ProjectProgress progress={totalProgress} />
         {project.tasks.map((task, taskIndex) => (
           <StyledView
             key={taskIndex}
@@ -96,16 +101,37 @@ const Plumbing: React.FC = memo(() => {
 
   return (
     <List.Section title="Plumbing Projects">
-      <ScrollView>
-        {projects.map((project) => (
-          <AccordionItem
-            key={project.id}
-            project={project}
-            handleTaskChange={handleTaskChange}
-          />
-        ))}
-      </ScrollView>
+      <FlatList
+        data={projects}
+        keyExtractor={(item) => `project-${item.id}`}
+        renderItem={({ item }) => (
+          <React.Fragment key={`project-${item.id}`}>
+            <AccordionItem project={item} handleTaskChange={handleTaskChange} />
+            <ProjectImages
+              key={`images-${item.id}`}
+              currentImgs={item.images}
+            />
+          </React.Fragment>
+        )}
+      />
     </List.Section>
+    // <List.Section title="Plumbing Projects">
+    //   <ScrollView>
+    //     {projects.map((project) => (
+    //       <>
+    //         <AccordionItem
+    //           key={project.id}
+    //           project={project}
+    //           handleTaskChange={handleTaskChange}
+    //         />
+    //         <ProjectImages
+    //           key={`images-${project.id}`}
+    //           currentImgs={project.images}
+    //         />
+    //       </>
+    //     ))}
+    //   </ScrollView>
+    // </List.Section>
   );
 });
 
